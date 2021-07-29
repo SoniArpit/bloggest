@@ -1,9 +1,9 @@
 from django.db import models
 from django.http import request
-from django.shortcuts import render, redirect, reverse
+from django.shortcuts import render, redirect, reverse, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, FormView
 from django.views.generic.base import View
-from .models import Post, Comment
+from .models import Category, Post, Comment
 from django.urls import reverse_lazy
 from .forms import CommentForm
 from django.contrib.auth.decorators import login_required
@@ -14,7 +14,7 @@ class Home(ListView):
     template_name = "blog/home.html"
     context_object_name = 'posts'
     ordering = '-pub_date'
-    paginate_by = 1
+    paginate_by = 3
 
 @method_decorator(login_required, name='dispatch')
 class Dashboard(View):
@@ -39,7 +39,7 @@ class PostDisplay(DetailView):
         context['form'] = CommentForm
         return context
 
-
+@method_decorator(login_required, name='dispatch')
 class PostComment(FormView):
     form_class = CommentForm
     template_name = "blog/post_detail.html"
@@ -63,6 +63,7 @@ class PostDetail(View):
         view = PostComment.as_view()
         return view(request, *args, **kwargs)
 
+@method_decorator(login_required, name='dispatch')
 class PostCreate(CreateView):
     model = Post
     fields = ("title", "content", "category")
@@ -71,10 +72,28 @@ class PostCreate(CreateView):
         form.instance.author = self.request.user
         return super(PostCreate, self).form_valid(form)
 
+@method_decorator(login_required, name='dispatch')
 class PostUpdate(UpdateView):
     model = Post
     fields = ('title', 'content', 'category')
 
+@method_decorator(login_required, name='dispatch')
 class PostDelete(DeleteView):
     model = Post
     success_url = reverse_lazy('dashboard')
+
+class PostCategory(ListView):
+    model = Post
+    template_name = 'blog/post_category.html'
+    context_object_name = "posts"
+    ordering = '-pub_date'
+    paginate_by = 3
+    
+    def get_queryset(self):
+        self.category = get_object_or_404(Category, pk=self.kwargs['pk'])
+        return Post.objects.filter(category = self.category)
+
+    def get_context_data(self, **kwargs):
+        context = super(PostCategory, self).get_context_data(**kwargs)
+        context['category'] = self.category
+        return context

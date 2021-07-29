@@ -16,5 +16,7 @@ urlpatterns = [
     path('dashboard/', views.Dashboard.as_view(), name="dashboard"),
     path('<int:pk>/edit/', views.PostUpdate.as_view(), name="post_update"),
     path('<int:pk>/delete/', views.PostDelete.as_view(), name="post_delete"),
+    path('post/category/<int:pk>/', views.PostCategory.as_view(), name="post_category"),
+    
 
 ]
