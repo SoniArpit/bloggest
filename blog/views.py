@@ -6,6 +6,8 @@ from django.views.generic.base import View
 from .models import Post, Comment
 from django.urls import reverse_lazy
 from .forms import CommentForm
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 class Home(ListView):
     model = Post
@@ -14,6 +16,7 @@ class Home(ListView):
     ordering = '-pub_date'
     paginate_by = 1
 
+@method_decorator(login_required, name='dispatch')
 class Dashboard(View):
     def get(self, reqeust, *args,**kwargs):
         view = Home.as_view(
